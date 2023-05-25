@@ -4,9 +4,9 @@
 # predictors and outcomes of choice.
 
 #LEGEND
-# amr_uti = amr_utiset = 
-# CIP = Antibiotic for prediction (3 letters in capitals) = 
-# group_id = group_idegory (for random effects) = 
+# DATA = dataset = amr_uti 
+# ABX = Antibiotic for prediction (3 letters in capitals) = CIP
+# CAT = Category (for random effects) = pt
 
 #MODEL TITLE: 
 
@@ -22,8 +22,8 @@ library("mlmRev")
 library("lme4")
 library("rstanarm")
 library("amr_uti.table")
-setwd( "/Users/alexhoward/Documents/Projects/PhD/AMR-UTI practice amr_utiset/R_logistic_regression" )
-load( "~/Documents/Projects/PhD/AMR-UTI practice amr_utiset/R_logistic_regression/AMR_UTI.Ramr_uti" )
+setwd("/Users/alexhoward/Documents/Projects/PhD/ADAPT-AST")
+load("~/Documents/Projects/PhD/ADAPT-AST/ABX.RData")
 
 
 
@@ -181,3 +181,5 @@ df_CIP_model <- cbind(
   CIP_perf <- performance( CIP_pred , "tpr" , "fpr" )
   plot( CIP_perf , colorize=TRUE )
   AUC( df_CIP_model$CIP_pred , df_CIP_model$CIP_actual )
+  
+  # AUC = 0.6414147
