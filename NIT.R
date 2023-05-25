@@ -21,7 +21,6 @@ library("ROCR")
 library("mlmRev")
 library("lme4")
 library("rstanarm")
-library("amr_uti.table")
 setwd("/Users/alexhoward/Documents/Projects/PhD/ADAPT-AST")
 load("~/Documents/Projects/PhD/ADAPT-AST/ABX.RData")
 
@@ -38,8 +37,10 @@ amr_uti <- read_csv( "amr_uti.csv" )
 
 # 2.2.1 Variable standardisation and formulation
 
-# Patient category variable creation
-amr_uti$pt <- rep(1, nrow(amr_uti))
+# Age group ategory variable creation
+amr_uti$age_group <- amr_uti %>% group_by(`demographics - age`,
+                                          `demographics - is_white`) %>%
+  group_indices()
 
 # 2.2.2 Variable assignment
 amr_uti$B1_NIT <-  amr_uti$`micro - prev resistance NIT ALL`
@@ -116,9 +117,9 @@ NIT_stan_amr_uti <- list(
   B12_m_NIT = 0 , B12_s_NIT = 10 ,
   
   # 4.4 Random effects data inputs
-  pt_n_NIT = length(unique(amr_uti$pt)) , # Number of group_idegories
-  tr_pt_NIT = tr_amr_uti$pt , # category amr_uti (training)
-  te_pt_NIT = te_amr_uti$pt , # category amr_uti (testing)
+  age_group_n_NIT = length(unique(amr_uti$age_group)) , # Number of group_idegories
+  tr_age_group_NIT = tr_amr_uti$age_group , # category amr_uti (training)
+  te_age_group_NIT = te_amr_uti$age_group , # category amr_uti (testing)
   
   # 4.5 Random intercept priors
   ar_m_NIT = 0 ,  #Random intercept prior mean
@@ -136,7 +137,7 @@ NIT_stan_amr_uti <- list(
 ### MODULE 5: Stan MCMC algorithm ####
 
 NIT_model = stan(
-  file = "NIT_model.stan" ,
+  file = "NIT.stan" ,
   data = NIT_stan_amr_uti ,
   iter = 1000 ,
   warmup = 500 ,
@@ -178,3 +179,5 @@ NIT_pred <- prediction( df_NIT_model$NIT_pred , df_NIT_model$NIT_actual )
 NIT_perf <- performance( NIT_pred , "tpr" , "fpr" )
 plot( NIT_perf , colorize=TRUE )
 AUC( df_NIT_model$NIT_pred , df_NIT_model$NIT_actual )
+
+# AUC = 0.537326

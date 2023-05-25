@@ -5,7 +5,7 @@ data {
   // Data dimensions
   int<lower=1> n_tr_SXT; // Training sample size
   int<lower=1> x_n_SXT; // Number of beta coefficients
-  int<lower=1> pt_n_SXT; // Number of categories
+  int<lower=1> age_group_n_SXT; // Number of categories
   int<lower=1> n_te_SXT; // Testing sample size
   
   //Standard data inputs
@@ -14,8 +14,8 @@ data {
   matrix[n_te_SXT,x_n_SXT] te_x_SXT; //Testing coefficient matrix
 
   // Random effects data inputs
-  int<lower=1> tr_pt_SXT[n_tr_SXT]; // Training data category labels
-  int<lower=1> te_pt_SXT[n_te_SXT]; // Testing data category labels
+  int<lower=1> tr_age_group_SXT[n_tr_SXT]; // Training data category labels
+  int<lower=1> te_age_group_SXT[n_te_SXT]; // Testing data category labels
     
   // Standard priors
   real a1_m_SXT;
@@ -35,7 +35,7 @@ parameters {
   
   //Standard parameters
   real a1_SXT; //overall intercept
-  vector[pt_n_SXT] ar_SXT; //intercept adjustment according to group
+  vector[age_group_n_SXT] ar_SXT; //intercept adjustment according to group
   vector[x_n_SXT] B_SXT; //coefficient slope
   
   //Random effects parameters
@@ -47,7 +47,7 @@ parameters {
 model {
   
   // Likelihood model
-  tr_y_SXT ~ bernoulli_logit(a1_SXT + tr_x_SXT * B_SXT);
+  tr_y_SXT ~ bernoulli_logit(a1_SXT + ar_SXT[tr_age_group_SXT] + tr_x_SXT * B_SXT);
   
   // Coefficient priors
   a1_SXT ~ normal(a1_m_SXT , a1_s_SXT);
@@ -65,7 +65,7 @@ generated quantities {
   // Generation of logit predictions on test dataset
   vector[n_te_SXT] SXT_y_pr;
   for (n in 1:n_te_SXT) {
-    real log_prob = a1_SXT + te_x_SXT[n,] * B_SXT;
+    real log_prob = a1_SXT + ar_SXT[te_age_group_SXT[n]] + te_x_SXT[n,] * B_SXT;
     
   // Inverse logit to derive probabilities
       SXT_y_pr[n] = inv_logit(log_prob);

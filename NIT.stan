@@ -5,7 +5,7 @@ data {
   // Data dimensions
   int<lower=1> n_tr_NIT; // Training sample size
   int<lower=1> x_n_NIT; // Number of beta coefficients
-  int<lower=1> pt_n_NIT; // Number of categories
+  int<lower=1> age_group_n_NIT; // Number of categories
   int<lower=1> n_te_NIT; // Testing sample size
   
   //Standard data inputs
@@ -14,8 +14,8 @@ data {
   matrix[n_te_NIT,x_n_NIT] te_x_NIT; //Testing coefficient matrix
 
   // Random effects data inputs
-  int<lower=1> tr_pt_NIT[n_tr_NIT]; // Training data category labels
-  int<lower=1> te_pt_NIT[n_te_NIT]; // Testing data category labels
+  int<lower=1> tr_age_group_NIT[n_tr_NIT]; // Training data category labels
+  int<lower=1> te_age_group_NIT[n_te_NIT]; // Testing data category labels
     
   // Standard priors
   real a1_m_NIT;
@@ -35,7 +35,7 @@ parameters {
   
   //Standard parameters
   real a1_NIT; //overall intercept
-  vector[pt_n_NIT] ar_NIT; //intercept adjustment according to group
+  vector[age_group_n_NIT] ar_NIT; //intercept adjustment according to group
   vector[x_n_NIT] B_NIT; //coefficient slope
   
   //Random effects parameters
@@ -47,7 +47,7 @@ parameters {
 model {
   
   // Likelihood model
-  tr_y_NIT ~ bernoulli_logit(a1_NIT + tr_x_NIT * B_NIT);
+  tr_y_NIT ~ bernoulli_logit(a1_NIT + ar_NIT[tr_age_group_NIT] + tr_x_NIT * B_NIT);
   
   // Coefficient priors
   a1_NIT ~ normal(a1_m_NIT , a1_s_NIT);
@@ -65,7 +65,7 @@ generated quantities {
   // Generation of logit predictions on test dataset
   vector[n_te_NIT] NIT_y_pr;
   for (n in 1:n_te_NIT) {
-    real log_prob = a1_NIT + te_x_NIT[n,] * B_NIT;
+    real log_prob = a1_NIT + ar_NIT[te_age_group_NIT[n]] + te_x_NIT[n,] * B_NIT;
     
   // Inverse logit to derive probabilities
       NIT_y_pr[n] = inv_logit(log_prob);

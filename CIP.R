@@ -21,10 +21,8 @@ library("ROCR")
 library("mlmRev")
 library("lme4")
 library("rstanarm")
-library("amr_uti.table")
 setwd("/Users/alexhoward/Documents/Projects/PhD/ADAPT-AST")
 load("~/Documents/Projects/PhD/ADAPT-AST/ABX.RData")
-
 
 
 
@@ -38,8 +36,11 @@ amr_uti <- read_csv( "amr_uti.csv" )
 
   # 2.2.1 Variable standardisation and formulation
 
-  # Patient category variable creation
-  amr_uti$pt <- rep(1, nrow(amr_uti))
+  # Age / ethnicity category variable creation
+amr_uti$age_group <- amr_uti %>% group_by(`demographics - age`,
+                                          `demographics - is_white`) %>%
+  group_indices()
+
 
   # 2.2.2 Variable assignment
   amr_uti$B1_CIP <-  amr_uti$`micro - prev resistance CIP ALL`
@@ -119,9 +120,9 @@ CIP_stan_amr_uti <- list(
   B12_m_CIP = 0 , B12_s_CIP = 10 ,
   
   # 4.4 Random effects data inputs
-  pt_n_CIP = length(unique(amr_uti$pt)) , # Number of group_idegories
-  tr_pt_CIP = tr_amr_uti$pt , # category amr_uti (training)
-  te_pt_CIP = te_amr_uti$pt , # category amr_uti (testing)
+  age_group_n_CIP = length(unique(amr_uti$age_group)) , # Number of group_idegories
+  tr_age_group_CIP = tr_amr_uti$age_group , # category amr_uti (training)
+  te_age_group_CIP = te_amr_uti$age_group , # category amr_uti (testing)
   
   # 4.5 Random intercept priors
   ar_m_CIP = 0 ,  #Random intercept prior mean
@@ -182,4 +183,4 @@ df_CIP_model <- cbind(
   plot( CIP_perf , colorize=TRUE )
   AUC( df_CIP_model$CIP_pred , df_CIP_model$CIP_actual )
   
-  # AUC = 0.6414147
+  # AUC = 0.6301797

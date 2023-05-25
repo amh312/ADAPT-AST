@@ -5,7 +5,7 @@ data {
   // Data dimensions
   int<lower=1> n_tr_CIP; // Training sample size
   int<lower=1> x_n_CIP; // Number of beta coefficients
-  int<lower=1> pt_n_CIP; // Number of categories
+  int<lower=1> age_group_n_CIP; // Number of categories
   int<lower=1> n_te_CIP; // Testing sample size
   
   //Standard data inputs
@@ -14,8 +14,8 @@ data {
   matrix[n_te_CIP,x_n_CIP] te_x_CIP; //Testing coefficient matrix
 
   // Random effects data inputs
-  int<lower=1> tr_pt_CIP[n_tr_CIP]; // Training data category labels
-  int<lower=1> te_pt_CIP[n_te_CIP]; // Testing data category labels
+  int<lower=1> tr_age_group_CIP[n_tr_CIP]; // Training data category labels
+  int<lower=1> te_age_group_CIP[n_te_CIP]; // Testing data category labels
     
   // Standard priors
   real a1_m_CIP;
@@ -35,7 +35,7 @@ parameters {
   
   //Standard parameters
   real a1_CIP; //overall intercept
-  vector[pt_n_CIP] ar_CIP; //intercept adjustment according to group
+  vector[age_group_n_CIP] ar_CIP; //intercept adjustment according to group
   vector[x_n_CIP] B_CIP; //coefficient slope
   
   //Random effects parameters
@@ -47,7 +47,7 @@ parameters {
 model {
   
   // Likelihood model
-  tr_y_CIP ~ bernoulli_logit(a1_CIP + tr_x_CIP * B_CIP);
+  tr_y_CIP ~ bernoulli_logit(a1_CIP + ar_CIP[tr_age_group_CIP] + tr_x_CIP * B_CIP);
   
   // Coefficient priors
   a1_CIP ~ normal(a1_m_CIP , a1_s_CIP);
@@ -65,7 +65,7 @@ generated quantities {
   // Generation of logit predictions on test dataset
   vector[n_te_CIP] CIP_y_pr;
   for (n in 1:n_te_CIP) {
-    real log_prob = a1_CIP + te_x_CIP[n,] * B_CIP;
+    real log_prob = a1_CIP + ar_CIP[te_age_group_CIP[n]] + te_x_CIP[n,] * B_CIP;
     
   // Inverse logit to derive probabilities
       CIP_y_pr[n] = inv_logit(log_prob);

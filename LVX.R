@@ -21,7 +21,6 @@ library("ROCR")
 library("mlmRev")
 library("lme4")
 library("rstanarm")
-library("amr_uti.table")
 setwd("/Users/alexhoward/Documents/Projects/PhD/ADAPT-AST")
 load("~/Documents/Projects/PhD/ADAPT-AST/ABX.RData")
 
@@ -38,8 +37,10 @@ amr_uti <- read_csv( "amr_uti.csv" )
 
 # 2.2.1 Variable standardisation and formulation
 
-# Patient category variable creation
-amr_uti$pt <- rep(1, nrow(amr_uti))
+# Age group category variable creation
+amr_uti$age_group <- amr_uti %>% group_by(`demographics - age`,
+                                          `demographics - is_white`) %>%
+  group_indices()
 
 # 2.2.2 Variable assignment
 amr_uti$B1_LVX <-  amr_uti$`micro - prev resistance LVX ALL`
@@ -119,9 +120,9 @@ LVX_stan_amr_uti <- list(
   B12_m_LVX = 0 , B12_s_LVX = 10 ,
   
   # 4.4 Random effects data inputs
-  pt_n_LVX = length(unique(amr_uti$pt)) , # Number of group_idegories
-  tr_pt_LVX = tr_amr_uti$pt , # category amr_uti (training)
-  te_pt_LVX = te_amr_uti$pt , # category amr_uti (testing)
+  age_group_n_LVX = length(unique(amr_uti$age_group)) , # Number of group_idegories
+  tr_age_group_LVX = tr_amr_uti$age_group , # category amr_uti (training)
+  te_age_group_LVX = te_amr_uti$age_group , # category amr_uti (testing)
   
   # 4.5 Random intercept priors
   ar_m_LVX = 0 ,  #Random intercept prior mean
@@ -181,3 +182,5 @@ LVX_pred <- prediction( df_LVX_model$LVX_pred , df_LVX_model$LVX_actual )
 LVX_perf <- performance( LVX_pred , "tpr" , "fpr" )
 plot( LVX_perf , colorize=TRUE )
 AUC( df_LVX_model$LVX_pred , df_LVX_model$LVX_actual )
+
+# AUC = 0.631306
