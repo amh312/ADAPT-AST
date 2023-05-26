@@ -1,3 +1,4 @@
+
 # This package provides the algorithms for prediction
 # and prioritisation of antimicrobial susceptibility testing.
 # Elements in CAPITALS are for substitution with the
@@ -26,7 +27,6 @@ load("~/Documents/Projects/PhD/ADAPT-AST/ABX.RData")
 
 
 
-
 ### MODULE 2: amr_uti set preparation ###
 
 # 2.1 amr_uti upload
@@ -37,16 +37,17 @@ amr_uti <- read_csv( "amr_uti.csv" )
 
 # 2.2.1 Variable standardisation and formulation
 
-# Age group category variable creation
+# Age / ethnicity category variable creation
 amr_uti$age_group <- amr_uti %>% group_by(`demographics - age`,
                                           `demographics - is_white`) %>%
   group_indices()
+
 
 # 2.2.2 Variable assignment
 amr_uti$B1_LVX <-  amr_uti$`micro - prev resistance LVX ALL`
 amr_uti$B2_LVX <-  amr_uti$`micro - prev resistance LVX ALL`
 amr_uti$B3_LVX <-  amr_uti$`selected micro - colonization pressure LVX 90 - granular level`
-amr_uti$B4_LVX <-  amr_uti$`medication 14 - levofloxacin`
+amr_uti$B4_LVX <-  amr_uti$`medication 14 - LVXrofloxacin`
 amr_uti$B5_LVX <-  amr_uti$`custom 90 - nursing home`
 amr_uti$B6_LVX <-  amr_uti$`hosp ward - OP`
 
@@ -150,7 +151,6 @@ LVX_model = stan(
 
 
 
-
 ### MODULE 6: Model assessment
 
 # 6.1 View sampler performance
@@ -183,4 +183,4 @@ LVX_perf <- performance( LVX_pred , "tpr" , "fpr" )
 plot( LVX_perf , colorize=TRUE )
 AUC( df_LVX_model$LVX_pred , df_LVX_model$LVX_actual )
 
-# AUC = 0.631306
+# AUC = 0.6322299

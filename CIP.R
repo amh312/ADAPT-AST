@@ -1,3 +1,4 @@
+
 # This package provides the algorithms for prediction
 # and prioritisation of antimicrobial susceptibility testing.
 # Elements in CAPITALS are for substitution with the
@@ -34,33 +35,33 @@ amr_uti <- read_csv( "amr_uti.csv" )
 
 # 2.2 amr_uti cleaning
 
-  # 2.2.1 Variable standardisation and formulation
+# 2.2.1 Variable standardisation and formulation
 
-  # Age / ethnicity category variable creation
+# Age / ethnicity category variable creation
 amr_uti$age_group <- amr_uti %>% group_by(`demographics - age`,
                                           `demographics - is_white`) %>%
   group_indices()
 
 
-  # 2.2.2 Variable assignment
-  amr_uti$B1_CIP <-  amr_uti$`micro - prev resistance CIP ALL`
-  amr_uti$B2_CIP <-  amr_uti$`micro - prev resistance LVX ALL`
-  amr_uti$B3_CIP <-  amr_uti$`selected micro - colonization pressure CIP 90 - granular level`
-  amr_uti$B4_CIP <-  amr_uti$`medication 14 - ciprofloxacin`
-  amr_uti$B5_CIP <-  amr_uti$`custom 90 - nursing home`
-  amr_uti$B6_CIP <-  amr_uti$`hosp ward - OP`
+# 2.2.2 Variable assignment
+amr_uti$B1_CIP <-  amr_uti$`micro - prev resistance CIP ALL`
+amr_uti$B2_CIP <-  amr_uti$`micro - prev resistance LVX ALL`
+amr_uti$B3_CIP <-  amr_uti$`selected micro - colonization pressure CIP 90 - granular level`
+amr_uti$B4_CIP <-  amr_uti$`medication 14 - ciprofloxacin`
+amr_uti$B5_CIP <-  amr_uti$`custom 90 - nursing home`
+amr_uti$B6_CIP <-  amr_uti$`hosp ward - OP`
 
-  
-  #2.3 Split into training and testing amr_uti sets
-  tr_amr_uti <- amr_uti[amr_uti$is_train==1,] # 80% of amr_uti
-  te_amr_uti <- amr_uti[amr_uti$is_train==0,] # 20% of amr_uti
-  
-  ### MODULE 3: Model matrix generation ###
-  
-  #3.1 Listing of variables
-  
-  
-  #3.2 Training predictor variable matrix
+
+#2.3 Split into training and testing amr_uti sets
+tr_amr_uti <- amr_uti[amr_uti$is_train==1,] # 80% of amr_uti
+te_amr_uti <- amr_uti[amr_uti$is_train==0,] # 20% of amr_uti
+
+### MODULE 3: Model matrix generation ###
+
+#3.1 Listing of variables
+
+
+#3.2 Training predictor variable matrix
 tr_x_CIP <- as.matrix(model.matrix( CIP ~
                                       B1_CIP + # Predictor variable 1
                                       B2_CIP +
@@ -68,7 +69,7 @@ tr_x_CIP <- as.matrix(model.matrix( CIP ~
                                       B4_CIP +
                                       B5_CIP + # Predictor variable 1
                                       B6_CIP ,
-                                      tr_amr_uti )) #training matrix formation
+                                    tr_amr_uti )) #training matrix formation
 
 tr_x_CIP <- tr_x_CIP[,2:ncol(tr_x_CIP)]     # Intercept removal
 tr_amr_uti <- as.data.frame(tr_amr_uti) # Convert back to data frame
@@ -81,7 +82,7 @@ te_x_CIP <- as.matrix(model.matrix( CIP ~
                                       B4_CIP +
                                       B5_CIP + # Predictor variable 1
                                       B6_CIP ,
-                                      data = te_amr_uti )) #testing matrix formation
+                                    data = te_amr_uti )) #testing matrix formation
 
 te_x_CIP <- te_x_CIP[,2:ncol(te_x_CIP)] # Intercept removal
 tr_amr_uti <- as.data.frame(tr_amr_uti) # Convert back to data frame
@@ -150,7 +151,6 @@ CIP_model = stan(
 
 
 
-
 ### MODULE 6: Model assessment
 
 # 6.1 View sampler performance
@@ -172,15 +172,15 @@ df_CIP_model <- cbind(
 
 # 6.4 Performance measures
 
-  # 6.4.1 Log Loss
-  LogLoss(df_CIP_model$CIP_pred ,
+# 6.4.1 Log Loss
+LogLoss(df_CIP_model$CIP_pred ,
         df_CIP_model$CIP_actual )
 
 
-  # 6.4.2 ROC AUC
-  CIP_pred <- prediction( df_CIP_model$CIP_pred , df_CIP_model$CIP_actual )
-  CIP_perf <- performance( CIP_pred , "tpr" , "fpr" )
-  plot( CIP_perf , colorize=TRUE )
-  AUC( df_CIP_model$CIP_pred , df_CIP_model$CIP_actual )
-  
-  # AUC = 0.6301797
+# 6.4.2 ROC AUC
+CIP_pred <- prediction( df_CIP_model$CIP_pred , df_CIP_model$CIP_actual )
+CIP_perf <- performance( CIP_pred , "tpr" , "fpr" )
+plot( CIP_perf , colorize=TRUE )
+AUC( df_CIP_model$CIP_pred , df_CIP_model$CIP_actual )
+
+# AUC = 0.6322299

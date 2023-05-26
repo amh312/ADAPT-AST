@@ -1,3 +1,4 @@
+
 # This package provides the algorithms for prediction
 # and prioritisation of antimicrobial susceptibility testing.
 # Elements in CAPITALS are for substitution with the
@@ -26,7 +27,6 @@ load("~/Documents/Projects/PhD/ADAPT-AST/ABX.RData")
 
 
 
-
 ### MODULE 2: amr_uti set preparation ###
 
 # 2.1 amr_uti upload
@@ -37,17 +37,19 @@ amr_uti <- read_csv( "amr_uti.csv" )
 
 # 2.2.1 Variable standardisation and formulation
 
-# Age group ategory variable creation
+# Age / ethnicity category variable creation
 amr_uti$age_group <- amr_uti %>% group_by(`demographics - age`,
                                           `demographics - is_white`) %>%
   group_indices()
 
+
 # 2.2.2 Variable assignment
 amr_uti$B1_NIT <-  amr_uti$`micro - prev resistance NIT ALL`
-amr_uti$B2_NIT <-  amr_uti$`selected micro - colonization pressure NIT 90 - granular level`
-amr_uti$B3_NIT <-  amr_uti$`medication 14 - nitrofurantoin`
-amr_uti$B4_NIT <-  amr_uti$`custom 90 - nursing home`
-amr_uti$B5_NIT <-  amr_uti$`hosp ward - OP`
+amr_uti$B2_NIT <-  amr_uti$`micro - prev resistance LVX ALL`
+amr_uti$B3_NIT <-  amr_uti$`selected micro - colonization pressure NIT 90 - granular level`
+amr_uti$B4_NIT <-  amr_uti$`medication 14 - NITrofloxacin`
+amr_uti$B5_NIT <-  amr_uti$`custom 90 - nursing home`
+amr_uti$B6_NIT <-  amr_uti$`hosp ward - OP`
 
 
 #2.3 Split into training and testing amr_uti sets
@@ -65,7 +67,8 @@ tr_x_NIT <- as.matrix(model.matrix( NIT ~
                                       B2_NIT +
                                       B3_NIT + # Predictor variable 1
                                       B4_NIT +
-                                      B5_NIT , # Predictor variable 1 ,
+                                      B5_NIT + # Predictor variable 1
+                                      B6_NIT ,
                                     tr_amr_uti )) #training matrix formation
 
 tr_x_NIT <- tr_x_NIT[,2:ncol(tr_x_NIT)]     # Intercept removal
@@ -77,7 +80,8 @@ te_x_NIT <- as.matrix(model.matrix( NIT ~
                                       B2_NIT +
                                       B3_NIT + # Predictor variable 1
                                       B4_NIT +
-                                      B5_NIT ,
+                                      B5_NIT + # Predictor variable 1
+                                      B6_NIT ,
                                     data = te_amr_uti )) #testing matrix formation
 
 te_x_NIT <- te_x_NIT[,2:ncol(te_x_NIT)] # Intercept removal
@@ -147,7 +151,6 @@ NIT_model = stan(
 
 
 
-
 ### MODULE 6: Model assessment
 
 # 6.1 View sampler performance
@@ -180,4 +183,4 @@ NIT_perf <- performance( NIT_pred , "tpr" , "fpr" )
 plot( NIT_perf , colorize=TRUE )
 AUC( df_NIT_model$NIT_pred , df_NIT_model$NIT_actual )
 
-# AUC = 0.537326
+# AUC = 0.6322299

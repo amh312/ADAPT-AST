@@ -1,3 +1,4 @@
+
 # This package provides the algorithms for prediction
 # and prioritisation of antimicrobial susceptibility testing.
 # Elements in CAPITALS are for substitution with the
@@ -26,7 +27,6 @@ load("~/Documents/Projects/PhD/ADAPT-AST/ABX.RData")
 
 
 
-
 ### MODULE 2: amr_uti set preparation ###
 
 # 2.1 amr_uti upload
@@ -37,17 +37,19 @@ amr_uti <- read_csv( "amr_uti.csv" )
 
 # 2.2.1 Variable standardisation and formulation
 
-# Age group category variable creation
+# Age / ethnicity category variable creation
 amr_uti$age_group <- amr_uti %>% group_by(`demographics - age`,
                                           `demographics - is_white`) %>%
   group_indices()
 
+
 # 2.2.2 Variable assignment
 amr_uti$B1_SXT <-  amr_uti$`micro - prev resistance SXT ALL`
-amr_uti$B2_SXT <-  amr_uti$`selected micro - colonization pressure SXT 90 - granular level`
-amr_uti$B3_SXT <-  amr_uti$`medication 14 - trimethoprim/sulfamethoxazole`
-amr_uti$B4_SXT <-  amr_uti$`custom 90 - nursing home`
-amr_uti$B5_SXT <-  amr_uti$`hosp ward - OP`
+amr_uti$B2_SXT <-  amr_uti$`micro - prev resistance LVX ALL`
+amr_uti$B3_SXT <-  amr_uti$`selected micro - colonization pressure SXT 90 - granular level`
+amr_uti$B4_SXT <-  amr_uti$`medication 14 - SXTrofloxacin`
+amr_uti$B5_SXT <-  amr_uti$`custom 90 - nursing home`
+amr_uti$B6_SXT <-  amr_uti$`hosp ward - OP`
 
 
 #2.3 Split into training and testing amr_uti sets
@@ -65,7 +67,8 @@ tr_x_SXT <- as.matrix(model.matrix( SXT ~
                                       B2_SXT +
                                       B3_SXT + # Predictor variable 1
                                       B4_SXT +
-                                      B5_SXT , # Predictor variable 1 ,
+                                      B5_SXT + # Predictor variable 1
+                                      B6_SXT ,
                                     tr_amr_uti )) #training matrix formation
 
 tr_x_SXT <- tr_x_SXT[,2:ncol(tr_x_SXT)]     # Intercept removal
@@ -77,7 +80,8 @@ te_x_SXT <- as.matrix(model.matrix( SXT ~
                                       B2_SXT +
                                       B3_SXT + # Predictor variable 1
                                       B4_SXT +
-                                      B5_SXT ,
+                                      B5_SXT + # Predictor variable 1
+                                      B6_SXT ,
                                     data = te_amr_uti )) #testing matrix formation
 
 te_x_SXT <- te_x_SXT[,2:ncol(te_x_SXT)] # Intercept removal
@@ -147,7 +151,6 @@ SXT_model = stan(
 
 
 
-
 ### MODULE 6: Model assessment
 
 # 6.1 View sampler performance
@@ -180,4 +183,4 @@ SXT_perf <- performance( SXT_pred , "tpr" , "fpr" )
 plot( SXT_perf , colorize=TRUE )
 AUC( df_SXT_model$SXT_pred , df_SXT_model$SXT_actual )
 
-#AUC = 0.5791894
+# AUC = 0.6322299
