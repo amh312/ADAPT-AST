@@ -42,14 +42,13 @@ amr_uti$age_group <- amr_uti %>% group_by(`demographics - age`,
                                           `demographics - is_white`) %>%
   group_indices()
 
-
+amr_uti$`medication 14 - trimethoprim/sulfamethoxazole`
 # 2.2.2 Variable assignment
 amr_uti$B1_SXT <-  amr_uti$`micro - prev resistance SXT ALL`
-amr_uti$B2_SXT <-  amr_uti$`micro - prev resistance LVX ALL`
-amr_uti$B3_SXT <-  amr_uti$`selected micro - colonization pressure SXT 90 - granular level`
-amr_uti$B4_SXT <-  amr_uti$`medication 14 - SXTrofloxacin`
-amr_uti$B5_SXT <-  amr_uti$`custom 90 - nursing home`
-amr_uti$B6_SXT <-  amr_uti$`hosp ward - OP`
+amr_uti$B2_SXT <-  amr_uti$`selected micro - colonization pressure SXT 90 - granular level`
+amr_uti$B3_SXT <-  amr_uti$`medication 14 - trimethoprim/sulfamethoxazole`
+amr_uti$B4_SXT <-  amr_uti$`custom 90 - nursing home`
+amr_uti$B5_SXT <-  amr_uti$`hosp ward - OP`
 
 
 #2.3 Split into training and testing amr_uti sets
@@ -67,8 +66,7 @@ tr_x_SXT <- as.matrix(model.matrix( SXT ~
                                       B2_SXT +
                                       B3_SXT + # Predictor variable 1
                                       B4_SXT +
-                                      B5_SXT + # Predictor variable 1
-                                      B6_SXT ,
+                                      B5_SXT ,
                                     tr_amr_uti )) #training matrix formation
 
 tr_x_SXT <- tr_x_SXT[,2:ncol(tr_x_SXT)]     # Intercept removal
@@ -80,12 +78,11 @@ te_x_SXT <- as.matrix(model.matrix( SXT ~
                                       B2_SXT +
                                       B3_SXT + # Predictor variable 1
                                       B4_SXT +
-                                      B5_SXT + # Predictor variable 1
-                                      B6_SXT ,
+                                      B5_SXT ,
                                     data = te_amr_uti )) #testing matrix formation
 
 te_x_SXT <- te_x_SXT[,2:ncol(te_x_SXT)] # Intercept removal
-tr_amr_uti <- as.data.frame(tr_amr_uti) # Convert back to data frame
+te_amr_uti <- as.data.frame(te_amr_uti) # Convert back to data frame
 
 
 

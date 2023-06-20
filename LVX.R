@@ -45,9 +45,9 @@ amr_uti$age_group <- amr_uti %>% group_by(`demographics - age`,
 
 # 2.2.2 Variable assignment
 amr_uti$B1_LVX <-  amr_uti$`micro - prev resistance LVX ALL`
-amr_uti$B2_LVX <-  amr_uti$`micro - prev resistance LVX ALL`
+amr_uti$B2_LVX <-  amr_uti$`micro - prev resistance CIP ALL`
 amr_uti$B3_LVX <-  amr_uti$`selected micro - colonization pressure LVX 90 - granular level`
-amr_uti$B4_LVX <-  amr_uti$`medication 14 - LVXrofloxacin`
+amr_uti$B4_LVX <-  amr_uti$`medication 14 - levofloxacin`
 amr_uti$B5_LVX <-  amr_uti$`custom 90 - nursing home`
 amr_uti$B6_LVX <-  amr_uti$`hosp ward - OP`
 

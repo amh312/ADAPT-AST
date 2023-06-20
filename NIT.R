@@ -45,11 +45,10 @@ amr_uti$age_group <- amr_uti %>% group_by(`demographics - age`,
 
 # 2.2.2 Variable assignment
 amr_uti$B1_NIT <-  amr_uti$`micro - prev resistance NIT ALL`
-amr_uti$B2_NIT <-  amr_uti$`micro - prev resistance LVX ALL`
-amr_uti$B3_NIT <-  amr_uti$`selected micro - colonization pressure NIT 90 - granular level`
-amr_uti$B4_NIT <-  amr_uti$`medication 14 - NITrofloxacin`
-amr_uti$B5_NIT <-  amr_uti$`custom 90 - nursing home`
-amr_uti$B6_NIT <-  amr_uti$`hosp ward - OP`
+amr_uti$B2_NIT <-  amr_uti$`selected micro - colonization pressure NIT 90 - granular level`
+amr_uti$B3_NIT <-  amr_uti$`medication 14 - nitrofurantoin`
+amr_uti$B4_NIT <-  amr_uti$`custom 90 - nursing home`
+amr_uti$B5_NIT <-  amr_uti$`hosp ward - OP`
 
 
 #2.3 Split into training and testing amr_uti sets
@@ -67,8 +66,7 @@ tr_x_NIT <- as.matrix(model.matrix( NIT ~
                                       B2_NIT +
                                       B3_NIT + # Predictor variable 1
                                       B4_NIT +
-                                      B5_NIT + # Predictor variable 1
-                                      B6_NIT ,
+                                      B5_NIT , # Predictor variable 1
                                     tr_amr_uti )) #training matrix formation
 
 tr_x_NIT <- tr_x_NIT[,2:ncol(tr_x_NIT)]     # Intercept removal
@@ -80,8 +78,7 @@ te_x_NIT <- as.matrix(model.matrix( NIT ~
                                       B2_NIT +
                                       B3_NIT + # Predictor variable 1
                                       B4_NIT +
-                                      B5_NIT + # Predictor variable 1
-                                      B6_NIT ,
+                                      B5_NIT , # Predictor variable 1
                                     data = te_amr_uti )) #testing matrix formation
 
 te_x_NIT <- te_x_NIT[,2:ncol(te_x_NIT)] # Intercept removal

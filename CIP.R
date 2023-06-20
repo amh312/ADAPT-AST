@@ -35,21 +35,78 @@ amr_uti <- read_csv( "amr_uti.csv" )
 
 # 2.2 amr_uti cleaning
 
-# 2.2.1 Variable standardisation and formulation
+  # 2.2.1 Variable standardisation and formulation
+  
+  # Age / ethnicity category variable
+  amr_uti$age_group <- amr_uti %>% group_by(`demographics - age`,
+                                            `demographics - is_white`) %>%
+    group_indices()
+  
+  # Composite previous CIP/LVX resistance variables
+  amr_uti$`micro - prev resistance CIP CAT` <- amr_uti %>% group_by(`micro - prev resistance CIP ALL`,
+                                                                    `micro - prev resistance CIP 180`,
+                                                                    `micro - prev resistance CIP 90`,
+                                                                    `micro - prev resistance CIP 30`,
+                                                                    `micro - prev resistance CIP 14`) %>%
+    group_indices()
+  
+  amr_uti$`micro - prev resistance LVX CAT` <- amr_uti %>% group_by(`micro - prev resistance LVX ALL`,
+                                                                    `micro - prev resistance LVX 180`,
+                                                                    `micro - prev resistance LVX 90`,
+                                                                    `micro - prev resistance LVX 30`,
+                                                                    `micro - prev resistance LVX 14`) %>%
+    group_indices()
+  
+  #Composite nursing home variable
+  amr_uti$`custom CAT - nursing home` <- amr_uti %>% group_by(`custom 90 - nursing home`,
+                                                              `custom 30 - nursing home`,
+                                                              `custom 14 - nursing home`,
+                                                              `custom 7 - nursing home`) %>%
+    group_indices()
+  
+  
+  #Composite antimicrobial exposure variable
+  amr_uti$`ab CAT - fluoroquinolone` <- amr_uti %>% group_by(`ab class 180 - fluoroquinolone`,
+                                                             `medication 180 - ciprofloxacin`,
+                                                             `ab class 90 - fluoroquinolone`,
+                                                             `medication 90 - ciprofloxacin`,
+                                                             `ab class 30 - fluoroquinolone`,
+                                                             `medication 30 - ciprofloxacin`,
+                                                             `ab class 14 - fluoroquinolone`,
+                                                             `medication 14 - ciprofloxacin`) %>%
+    group_indices()
 
-# Age / ethnicity category variable creation
-amr_uti$age_group <- amr_uti %>% group_by(`demographics - age`,
-                                          `demographics - is_white`) %>%
-  group_indices()
+  #Composite ward category variable
+  amr_uti <-  mutate(amr_uti, `hosp ward - CAT` = case_when(`hosp ward - ER` == 1 ~ 1,
+                                                         `hosp ward - ICU` == 1 ~ 2,
+                                                         `hosp ward - IP` == 1 ~ 3,
+                                                         `hosp ward - OP` == 1 ~ 4, TRUE ~ 0))
+  
+  
+  #Composite time-weighted healthcare exposure quantifier
+  #Sum healthcare exposure in each time period
+  amr_uti <- amr_uti %>% rowwise() %>% mutate(
+    `comorbidity 7` = sum(across(`comorbidity 7 - Arrhythmia`:`comorbidity 7 - HIV`))) %>%
+    mutate(
+      `comorbidity 14` = sum(across(`comorbidity 14 - Arrhythmia`:`comorbidity 14 - HIV`))) %>% 
+    mutate(
+      `comorbidity 30` = sum(across(`comorbidity 30 - Arrhythmia`:`comorbidity 30 - HIV`))) %>%
+    mutate(
+      `comorbidity 90` = sum(across(`comorbidity 90 - Arrhythmia`:`comorbidity 90 - HIV`))) %>%
+    mutate(
+      `comorbidity 180` = sum(across(`comorbidity 180 - Arrhythmia`:`procedure 180 - had parenteral nutrition`)))
+  #Group by exposure quantity across the 4 time periods
 
+amr_uti <- amr_uti %>% mutate(`comorbidity` = case_when(`comorbidity 180` == 0 ~ 0,
+                                                        TRUE ~ 1))
 
 # 2.2.2 Variable assignment
-amr_uti$B1_CIP <-  amr_uti$`micro - prev resistance CIP ALL`
-amr_uti$B2_CIP <-  amr_uti$`micro - prev resistance LVX ALL`
+amr_uti$B1_CIP <-  amr_uti$`micro - prev resistance CIP CAT`
+amr_uti$B2_CIP <-  amr_uti$`micro - prev resistance LVX CAT`
 amr_uti$B3_CIP <-  amr_uti$`selected micro - colonization pressure CIP 90 - granular level`
-amr_uti$B4_CIP <-  amr_uti$`medication 14 - ciprofloxacin`
-amr_uti$B5_CIP <-  amr_uti$`custom 90 - nursing home`
-amr_uti$B6_CIP <-  amr_uti$`hosp ward - OP`
+amr_uti$B4_CIP <-  amr_uti$`ab CAT - fluoroquinolone`
+amr_uti$B5_CIP <-  amr_uti$`custom CAT - nursing home`
+amr_uti$B6_CIP <-  amr_uti$`hosp ward - CAT`
 
 
 #2.3 Split into training and testing amr_uti sets
@@ -60,7 +117,6 @@ te_amr_uti <- amr_uti[amr_uti$is_train==0,] # 20% of amr_uti
 
 #3.1 Listing of variables
 
-
 #3.2 Training predictor variable matrix
 tr_x_CIP <- as.matrix(model.matrix( CIP ~
                                       B1_CIP + # Predictor variable 1
@@ -68,7 +124,7 @@ tr_x_CIP <- as.matrix(model.matrix( CIP ~
                                       B3_CIP + # Predictor variable 1
                                       B4_CIP +
                                       B5_CIP + # Predictor variable 1
-                                      B6_CIP ,
+                                      B6_CIP,
                                     tr_amr_uti )) #training matrix formation
 
 tr_x_CIP <- tr_x_CIP[,2:ncol(tr_x_CIP)]     # Intercept removal
@@ -81,13 +137,11 @@ te_x_CIP <- as.matrix(model.matrix( CIP ~
                                       B3_CIP + # Predictor variable 1
                                       B4_CIP +
                                       B5_CIP + # Predictor variable 1
-                                      B6_CIP ,
+                                      B6_CIP,
                                     data = te_amr_uti )) #testing matrix formation
 
 te_x_CIP <- te_x_CIP[,2:ncol(te_x_CIP)] # Intercept removal
 tr_amr_uti <- as.data.frame(tr_amr_uti) # Convert back to data frame
-
-
 
 
 ### MODULE 4: Stan data list ###
@@ -183,4 +237,5 @@ CIP_perf <- performance( CIP_pred , "tpr" , "fpr" )
 plot( CIP_perf , colorize=TRUE )
 AUC( df_CIP_model$CIP_pred , df_CIP_model$CIP_actual )
 
-# AUC = 0.6322299
+# AUC = 0.6426022
+
