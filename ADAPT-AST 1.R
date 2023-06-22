@@ -442,7 +442,6 @@ ADAPT_AST_1$ADAPT_CIP[ADAPT_AST_1$ADAPT_CIP==1] <- "R"
 
 
 view(ADAPT_AST_1)
-view(ABX_rank)
+
 write.csv(ADAPT_AST_1, "/Users/alexhoward/Documents/Projects/PhD/ADAPT-AST/ADAPT_AST_1.csv")
 
-?write.csv
