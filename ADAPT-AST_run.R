@@ -567,9 +567,11 @@ AAST1_rank <- as.data.frame(rank(AAST1_unc))
 
 
 mid <- barplot(AAST1_output[1,])
-barplot(AAST1_output[1,], ylim=c(0,1), col=rainbow(10))
-arrows(x0=mid, y0=AAST1_output[2,],
-       x1=mid, y1=AAST1_output[3,],
+barplot(AAST1_output[1,]*100, ylim=c(0,100), col=rainbow(10),
+        xlab="Antimicrobial agent",
+        ylab="Probability of resistance (%)")
+arrows(x0=mid, y0=AAST1_output[2,]*100,
+       x1=mid, y1=AAST1_output[3,]*100,
        code=3, angle=90, length=0.1)
 
 
@@ -577,7 +579,7 @@ TEST_1 <- row.names(AAST1_rank)[which(AAST1_rank$`rank(AAST1_unc)`==1)]
 TEST_2 <- row.names(AAST1_rank)[which(AAST1_rank$`rank(AAST1_unc)`==2)]
 
 
-view(AAST1_output)
+view(AAST1_output*100)
 
 cat(paste("\n","\n","\n","\n","\n","\n","\n","\n","\n","\n","\n","\n",
           "\n","\n","\n","\n","\n","\n","\n","\n","\n","\n","\n","\n",
@@ -590,7 +592,8 @@ cat(paste("\n","\n","\n","\n","\n","\n","\n","\n","\n","\n","\n","\n",
           "Previous antimicrobial resistance",
           "\n","Previous antimicrobial prescription(s)",
           "\n","Nursing home residency",
-          "\n","Sampling location (inpatient or outpatient",
+          "\n","Sampling location (inpatient or outpatient)",
+          "\n","Resistance rates in sampling location",
           "\n","\n","\n","\n","\n","\n","\n",
           "\n","\n","\n","\n","\n","\n","\n","\n","\n","\n","\n","\n"))
 
