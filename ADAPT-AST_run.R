@@ -546,35 +546,36 @@ CIP_means <- round(apply(CIP_preds,2,mean, prob=0.95, ), digits=3)
 # 3. PRESENT PROBABILITIES AND MAKE SELECTIONS
 
 
-AAST1_HPDIs <- cbind(Cotrimoxazole=SXT_HPDIs[,1],
+AAST1_HPDIs <- rbind(Cotrimoxazole=SXT_HPDIs[,1],
                      Nitrofurantoin=NIT_HPDIs[,1],
                      Levofloxacin=LVX_HPDIs[,1],
                      Ciprofloxacin=CIP_HPDIs[,1])
 
-AAST1_means <- cbind(Cotrimoxazole=SXT_means[1],
+AAST1_means <- rbind(Cotrimoxazole=SXT_means[1],
                      Nitrofurantoin=NIT_means[1],
                      Levofloxacin=LVX_means[1],
                      Ciprofloxacin=CIP_means[1])
 
-AAST1_output <- rbind(AAST1_means,
+AAST1_output <- cbind(AAST1_means,
                       AAST1_HPDIs)
 
-rownames(AAST1_output)[1] = "mean"
+colnames(AAST1_output)[1] = "mean"
 
 AAST1_unc <- abs(0.5-AAST1_output)
-AAST1_unc <- AAST1_unc[2,]+AAST1_unc[3,]
+AAST1_unc <- AAST1_unc[,2]+AAST1_unc[,3]
 AAST1_rank <- as.data.frame(rank(AAST1_unc))
-
-
-mid <- barplot(AAST1_output[1,])
-barplot(AAST1_output[1,]*100, ylim=c(0,100), col=rainbow(10),
+view(AAST1_unc)
+par(mfrow = c(1,1))
+mid <- barplot(AAST1_output[,1])
+barplot(AAST1_output[,1]*100, ylim=c(0,100), col=rainbow(10),
         xlab="Antimicrobial agent",
-        ylab="Probability of resistance (%)")
-arrows(x0=mid, y0=AAST1_output[2,]*100,
-       x1=mid, y1=AAST1_output[3,]*100,
+        ylab="Probability of resistance (%)",
+        main="Probability predictions for sample C,12.345678.A")
+arrows(x0=mid, y0=AAST1_output[,2]*100,
+       x1=mid, y1=AAST1_output[,3]*100,
        code=3, angle=90, length=0.1)
 
-
+view(AAST1_rank)
 TEST_1 <- row.names(AAST1_rank)[which(AAST1_rank$`rank(AAST1_unc)`==1)]
 TEST_2 <- row.names(AAST1_rank)[which(AAST1_rank$`rank(AAST1_unc)`==2)]
 

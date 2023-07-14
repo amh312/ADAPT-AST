@@ -362,7 +362,19 @@ model {
   // Priors on variances for random effects
   ar_s_SXT ~ gamma(ar_sa_SXT, ar_sb_SXT);
   br_s_SXT ~ gamma(br_sa_SXT, br_sb_SXT);
-}")
+}
+
+generated quantities {
+  // Generation of logit predictions on test dataset
+  vector[n_te_SXT] SXT_y_pr;
+  for (n in 1:n_te_SXT) {
+    real log_prob = a1_SXT + ar_SXT[te_age_group_SXT[n]]
+      + dot_product(te_x_SXT[n,], (br_SXT[te_age_group_SXT[n],] + B_SXT'));
+    
+    // Inverse logit to derive probabilities
+    SXT_y_pr[n] = inv_logit(log_prob);
+  }
+}                          ")
 
 mod_SXT_mcmc <- cmdstan_model(SXT_mcmc)
 
@@ -441,7 +453,19 @@ model {
   // Priors on variances for random effects
   ar_s_NIT ~ gamma(ar_sa_NIT, ar_sb_NIT);
   br_s_NIT ~ gamma(br_sa_NIT, br_sb_NIT);
-}")
+}
+
+generated quantities {
+  // Generation of logit predictions on test dataset
+  vector[n_te_NIT] NIT_y_pr;
+  for (n in 1:n_te_NIT) {
+    real log_prob = a1_NIT + ar_NIT[te_age_group_NIT[n]]
+      + dot_product(te_x_NIT[n,], (br_NIT[te_age_group_NIT[n],] + B_NIT'));
+    
+    // Inverse logit to derive probabilities
+    NIT_y_pr[n] = inv_logit(log_prob);
+  }
+} ")
 
 mod_NIT_mcmc <- cmdstan_model(NIT_mcmc)
 
@@ -522,6 +546,18 @@ model {
   // Priors on variances for random effects
   ar_s_LVX ~ gamma(ar_sa_LVX, ar_sb_LVX);
   br_s_LVX ~ gamma(br_sa_LVX, br_sb_LVX);
+}
+
+generated quantities {
+  // Generation of logit predictions on test dataset
+  vector[n_te_LVX] LVX_y_pr;
+  for (n in 1:n_te_LVX) {
+    real log_prob = a1_LVX + ar_LVX[te_age_group_LVX[n]]
+      + dot_product(te_x_LVX[n,], (br_LVX[te_age_group_LVX[n],] + B_LVX'));
+    
+    // Inverse logit to derive probabilities
+    LVX_y_pr[n] = inv_logit(log_prob);
+  }
 }")
 
 mod_LVX_mcmc <- cmdstan_model(LVX_mcmc)
@@ -603,11 +639,414 @@ model {
   // Priors on variances for random effects
   ar_s_CIP ~ gamma(ar_sa_CIP, ar_sb_CIP);
   br_s_CIP ~ gamma(br_sa_CIP, br_sb_CIP);
-}")
+}
+
+generated quantities {
+  // Generation of logit predictions on test dataset
+  vector[n_te_CIP] CIP_y_pr;
+  for (n in 1:n_te_CIP) {
+    real log_prob = a1_CIP + ar_CIP[te_age_group_CIP[n]]
+      + dot_product(te_x_CIP[n,], (br_CIP[te_age_group_CIP[n],] + B_CIP'));
+    
+    // Inverse logit to derive probabilities
+    CIP_y_pr[n] = inv_logit(log_prob);
+  }
+} ")
 
 mod_CIP_mcmc <- cmdstan_model(CIP_mcmc)
 
 fit_CIP_mcmc <- mod_CIP_mcmc$sample(data = CIP_stan_amr_uti, seed=4)
 
+
+
+
+
+# 4. TEST DATASET PREDICTIONS
+
+#SXT
+
+SXT_test <- write_stan_file("data {
+  
+  // Data dimensions
+  int<lower=1> n_tr_SXT; // Training sample size
+  int<lower=1> x_n_SXT; // Number of beta coefficients
+  int<lower=1> age_group_n_SXT; // Number of categories
+  int<lower=1> n_te_SXT; // Testing sample size
+  
+  //Standard data inputs
+  matrix[n_tr_SXT,x_n_SXT] tr_x_SXT; // Training coefficient matrix
+  int<lower=0, upper=1> tr_y_SXT[n_tr_SXT]; // Training outcome measure
+  matrix[n_te_SXT,x_n_SXT] te_x_SXT; //Testing coefficient matrix
+
+  // Random effects data inputs
+  int<lower=1> tr_age_group_SXT[n_tr_SXT]; // Training data category labels
+  int<lower=1> te_age_group_SXT[n_te_SXT]; // Testing data category labels
+    
+  // Standard priors
+  real a1_m_SXT;
+  real<lower=0> a1_s_SXT;
+  real B_m_SXT;
+  real<lower=0> B_s_SXT;
+  
+  // Random effects priors
+  real<lower=0> ar_m_SXT;
+  real<lower=0> ar_sa_SXT; // Prior shape: sigsq_alpha1
+  real<lower=0> ar_sb_SXT; // Prior rate: sigsq_alpha1
+  real<lower=0> br_m_SXT;
+  real<lower=0> br_sa_SXT; // Prior shape: sigsq_alpha1
+  real<lower=0> br_sb_SXT; // Prior rate: sigsq_alpha1
+}
+
+
+
+parameters {
+  
+  //Standard parameters
+  real a1_SXT; //overall intercept
+  vector[age_group_n_SXT] ar_SXT; //intercept adjustment according to group
+  matrix[age_group_n_SXT, x_n_SXT] br_SXT; //slope adjustment according to group
+  vector[x_n_SXT] B_SXT; //coefficient slope
+  
+  //Random effects parameters
+  real<lower=1e-100> ar_s_SXT;   // SD of intercept adjustments
+  real<lower=1e-100> br_s_SXT;   // SD of intercept adjustments
+}
+
+generated quantities {
+  // Generation of logit predictions on test dataset
+  vector[n_te_SXT] SXT_y_pr;
+  for (n in 1:n_te_SXT) {
+    real log_prob = a1_SXT + ar_SXT[te_age_group_SXT[n]]
+      + dot_product(te_x_SXT[n,], (br_SXT[te_age_group_SXT[n],] + B_SXT'));
+    
+    // Inverse logit to derive probabilities
+    SXT_y_pr[n] = inv_logit(log_prob);
+  }
+}                          ")
+
+mod_SXT_test <- cmdstan_model(SXT_test)
+
+fit_SXT_test <- mod_SXT_test$generate_quantities(fit_SXT_mcmc,
+                                             data=SXT_stan_amr_uti,
+                                             seed=1)
+
+SXT_test_df <- as_draws_df(fit_SXT_test$draws())
+
+
+
+
+
+#NIT
+
+NIT_test <- write_stan_file("data {
+  
+  // Data dimensions
+  int<lower=1> n_tr_NIT; // Training sample size
+  int<lower=1> x_n_NIT; // Number of beta coefficients
+  int<lower=1> age_group_n_NIT; // Number of categories
+  int<lower=1> n_te_NIT; // Testing sample size
+  
+  //Standard data inputs
+  matrix[n_tr_NIT,x_n_NIT] tr_x_NIT; // Training coefficient matrix
+  int<lower=0, upper=1> tr_y_NIT[n_tr_NIT]; // Training outcome measure
+  matrix[n_te_NIT,x_n_NIT] te_x_NIT; //Testing coefficient matrix
+
+  // Random effects data inputs
+  int<lower=1> tr_age_group_NIT[n_tr_NIT]; // Training data category labels
+  int<lower=1> te_age_group_NIT[n_te_NIT]; // Testing data category labels
+    
+  // Standard priors
+  real a1_m_NIT;
+  real<lower=0> a1_s_NIT;
+  real B_m_NIT;
+  real<lower=0> B_s_NIT;
+  
+  // Random effects priors
+  real<lower=0> ar_m_NIT;
+  real<lower=0> ar_sa_NIT; // Prior shape: sigsq_alpha1
+  real<lower=0> ar_sb_NIT; // Prior rate: sigsq_alpha1
+  real<lower=0> br_m_NIT;
+  real<lower=0> br_sa_NIT; // Prior shape: sigsq_alpha1
+  real<lower=0> br_sb_NIT; // Prior rate: sigsq_alpha1
+}
+
+
+
+parameters {
+  
+  //Standard parameters
+  real a1_NIT; //overall intercept
+  vector[age_group_n_NIT] ar_NIT; //intercept adjustment according to group
+  matrix[age_group_n_NIT, x_n_NIT] br_NIT; //slope adjustment according to group
+  vector[x_n_NIT] B_NIT; //coefficient slope
+  
+  //Random effects parameters
+  real<lower=1e-100> ar_s_NIT;   // SD of intercept adjustments
+  real<lower=1e-100> br_s_NIT;   // SD of intercept adjustments
+}
+
+generated quantities {
+  // Generation of logit predictions on test dataset
+  vector[n_te_NIT] NIT_y_pr;
+  for (n in 1:n_te_NIT) {
+    real log_prob = a1_NIT + ar_NIT[te_age_group_NIT[n]]
+      + dot_product(te_x_NIT[n,], (br_NIT[te_age_group_NIT[n],] + B_NIT'));
+    
+    // Inverse logit to derive probabilities
+    NIT_y_pr[n] = inv_logit(log_prob);
+  }
+}                          ")
+
+mod_NIT_test <- cmdstan_model(NIT_test)
+
+fit_NIT_test <- mod_NIT_test$generate_quantities(fit_NIT_mcmc,
+                                                 data=NIT_stan_amr_uti,
+                                                 seed=2)
+
+NIT_test_df <- as_draws_df(fit_NIT_test$draws())
+
+
+
+
+
+#LVX
+
+LVX_test <- write_stan_file("data {
+  
+  // Data dimensions
+  int<lower=1> n_tr_LVX; // Training sample size
+  int<lower=1> x_n_LVX; // Number of beta coefficients
+  int<lower=1> age_group_n_LVX; // Number of categories
+  int<lower=1> n_te_LVX; // Testing sample size
+  
+  //Standard data inputs
+  matrix[n_tr_LVX,x_n_LVX] tr_x_LVX; // Training coefficient matrix
+  int<lower=0, upper=1> tr_y_LVX[n_tr_LVX]; // Training outcome measure
+  matrix[n_te_LVX,x_n_LVX] te_x_LVX; //Testing coefficient matrix
+
+  // Random effects data inputs
+  int<lower=1> tr_age_group_LVX[n_tr_LVX]; // Training data category labels
+  int<lower=1> te_age_group_LVX[n_te_LVX]; // Testing data category labels
+    
+  // Standard priors
+  real a1_m_LVX;
+  real<lower=0> a1_s_LVX;
+  real B_m_LVX;
+  real<lower=0> B_s_LVX;
+  
+  // Random effects priors
+  real<lower=0> ar_m_LVX;
+  real<lower=0> ar_sa_LVX; // Prior shape: sigsq_alpha1
+  real<lower=0> ar_sb_LVX; // Prior rate: sigsq_alpha1
+  real<lower=0> br_m_LVX;
+  real<lower=0> br_sa_LVX; // Prior shape: sigsq_alpha1
+  real<lower=0> br_sb_LVX; // Prior rate: sigsq_alpha1
+}
+
+
+
+parameters {
+  
+  //Standard parameters
+  real a1_LVX; //overall intercept
+  vector[age_group_n_LVX] ar_LVX; //intercept adjustment according to group
+  matrix[age_group_n_LVX, x_n_LVX] br_LVX; //slope adjustment according to group
+  vector[x_n_LVX] B_LVX; //coefficient slope
+  
+  //Random effects parameters
+  real<lower=1e-100> ar_s_LVX;   // SD of intercept adjustments
+  real<lower=1e-100> br_s_LVX;   // SD of intercept adjustments
+}
+
+generated quantities {
+  // Generation of logit predictions on test dataset
+  vector[n_te_LVX] LVX_y_pr;
+  for (n in 1:n_te_LVX) {
+    real log_prob = a1_LVX + ar_LVX[te_age_group_LVX[n]]
+      + dot_product(te_x_LVX[n,], (br_LVX[te_age_group_LVX[n],] + B_LVX'));
+    
+    // Inverse logit to derive probabilities
+    LVX_y_pr[n] = inv_logit(log_prob);
+  }
+}                          ")
+
+mod_LVX_test <- cmdstan_model(LVX_test)
+
+fit_LVX_test <- mod_LVX_test$generate_quantities(fit_LVX_mcmc,
+                                                 data=LVX_stan_amr_uti,
+                                                 seed=3)
+
+LVX_test_df <- as_draws_df(fit_LVX_test$draws())
+
+
+
+#CIP
+
+CIP_test <- write_stan_file("data {
+  
+  // Data dimensions
+  int<lower=1> n_tr_CIP; // Training sample size
+  int<lower=1> x_n_CIP; // Number of beta coefficients
+  int<lower=1> age_group_n_CIP; // Number of categories
+  int<lower=1> n_te_CIP; // Testing sample size
+  
+  //Standard data inputs
+  matrix[n_tr_CIP,x_n_CIP] tr_x_CIP; // Training coefficient matrix
+  int<lower=0, upper=1> tr_y_CIP[n_tr_CIP]; // Training outcome measure
+  matrix[n_te_CIP,x_n_CIP] te_x_CIP; //Testing coefficient matrix
+
+  // Random effects data inputs
+  int<lower=1> tr_age_group_CIP[n_tr_CIP]; // Training data category labels
+  int<lower=1> te_age_group_CIP[n_te_CIP]; // Testing data category labels
+    
+  // Standard priors
+  real a1_m_CIP;
+  real<lower=0> a1_s_CIP;
+  real B_m_CIP;
+  real<lower=0> B_s_CIP;
+  
+  // Random effects priors
+  real<lower=0> ar_m_CIP;
+  real<lower=0> ar_sa_CIP; // Prior shape: sigsq_alpha1
+  real<lower=0> ar_sb_CIP; // Prior rate: sigsq_alpha1
+  real<lower=0> br_m_CIP;
+  real<lower=0> br_sa_CIP; // Prior shape: sigsq_alpha1
+  real<lower=0> br_sb_CIP; // Prior rate: sigsq_alpha1
+}
+
+
+
+parameters {
+  
+  //Standard parameters
+  real a1_CIP; //overall intercept
+  vector[age_group_n_CIP] ar_CIP; //intercept adjustment according to group
+  matrix[age_group_n_CIP, x_n_CIP] br_CIP; //slope adjustment according to group
+  vector[x_n_CIP] B_CIP; //coefficient slope
+  
+  //Random effects parameters
+  real<lower=1e-100> ar_s_CIP;   // SD of intercept adjustments
+  real<lower=1e-100> br_s_CIP;   // SD of intercept adjustments
+}
+
+generated quantities {
+  // Generation of logit predictions on test dataset
+  vector[n_te_CIP] CIP_y_pr;
+  for (n in 1:n_te_CIP) {
+    real log_prob = a1_CIP + ar_CIP[te_age_group_CIP[n]]
+      + dot_product(te_x_CIP[n,], (br_CIP[te_age_group_CIP[n],] + B_CIP'));
+    
+    // Inverse logit to derive probabilities
+    CIP_y_pr[n] = inv_logit(log_prob);
+  }
+}                          ")
+
+mod_CIP_test <- cmdstan_model(CIP_test)
+
+fit_CIP_test <- mod_CIP_test$generate_quantities(fit_CIP_mcmc,
+                                                 data=CIP_stan_amr_uti,
+                                                 seed=4)
+
+CIP_test_df <- as_draws_df(fit_CIP_test$draws())
+
+
+
+
+
+
+# 5. PREDICTION ASSESSMENTS
+
+#SXT
+df_SXT_model <- as.data.frame( SXT_test_df )
+df_SXT_model <- as.data.frame( list(
+  SXT_mean = apply(df_SXT_model , 2 , mean)))
+df_SXT_model <- cbind(
+  as.data.frame( list( SXT_actual = te_amr_uti$SXT ) ), 
+  SXT_pred = df_SXT_model[ grep('SXT_y_pr' , rownames(df_SXT_model)) , ] )
+LL_SXT <- LogLoss(df_SXT_model$SXT_pred ,
+        df_SXT_model$SXT_actual )
+SXT_pred <- prediction( df_SXT_model$SXT_pred , df_SXT_model$SXT_actual )
+SXT_perf <- performance( SXT_pred , "tpr" , "fpr" )
+AUC_SXT <- AUC( df_SXT_model$SXT_pred , df_SXT_model$SXT_actual )
+
+
+#NIT
+df_NIT_model <- as.data.frame( NIT_test_df )
+df_NIT_model <- as.data.frame( list(
+  NIT_mean = apply(df_NIT_model , 2 , mean)))
+df_NIT_model <- cbind(
+  as.data.frame( list( NIT_actual = te_amr_uti$NIT ) ), 
+  NIT_pred = df_NIT_model[ grep('NIT_y_pr' , rownames(df_NIT_model)) , ] )
+LL_NIT <- LogLoss(df_NIT_model$NIT_pred ,
+        df_NIT_model$NIT_actual )
+NIT_pred <- prediction( df_NIT_model$NIT_pred , df_NIT_model$NIT_actual )
+NIT_perf <- performance( NIT_pred , "tpr" , "fpr" )
+AUC_NIT <- AUC( df_NIT_model$NIT_pred , df_NIT_model$NIT_actual )
+
+
+#LVX
+df_LVX_model <- as.data.frame( LVX_test_df )
+df_LVX_model <- as.data.frame( list(
+  LVX_mean = apply(df_LVX_model , 2 , mean)))
+df_LVX_model <- cbind(
+  as.data.frame( list( LVX_actual = te_amr_uti$LVX ) ), 
+  LVX_pred = df_LVX_model[ grep('LVX_y_pr' , rownames(df_LVX_model)) , ] )
+LL_LVX <- LogLoss(df_LVX_model$LVX_pred ,
+        df_LVX_model$LVX_actual )
+LVX_pred <- prediction( df_LVX_model$LVX_pred , df_LVX_model$LVX_actual )
+LVX_perf <- performance( LVX_pred , "tpr" , "fpr" )
+AUC_LVX <- AUC( df_LVX_model$LVX_pred , df_LVX_model$LVX_actual )
+
+
+#CIP
+df_CIP_model <- as.data.frame( CIP_test_df )
+df_CIP_model <- as.data.frame( list(
+  CIP_mean = apply(df_CIP_model , 2 , mean)))
+df_CIP_model <- cbind(
+  as.data.frame( list( CIP_actual = te_amr_uti$CIP ) ), 
+  CIP_pred = df_CIP_model[ grep('CIP_y_pr' , rownames(df_CIP_model)) , ] )
+LL_CIP <- LogLoss(df_CIP_model$CIP_pred ,
+        df_CIP_model$CIP_actual )
+CIP_pred <- prediction( df_CIP_model$CIP_pred , df_CIP_model$CIP_actual )
+CIP_perf <- performance( CIP_pred , "tpr" , "fpr" )
+AUC_CIP <- AUC( df_CIP_model$CIP_pred , df_CIP_model$CIP_actual )
+
+
+#AUC plots
+par(mfrow = c(2,2))
+plot( SXT_perf , colorize=TRUE, main="Cotrimoxazole")
+plot( NIT_perf , colorize=TRUE, main = "Nitrofurantoin" )
+plot( LVX_perf , colorize=TRUE, main = "Levofloxacin" )
+plot( CIP_perf , colorize=TRUE, main = "Ciprofloxacin" )
+
+test_AUCs <- rbind( Cotrimoxazole = AUC_SXT,
+                    Nitrofurantoin = AUC_NIT,
+                    Levofloxacin = AUC_LVX,
+                    Ciprofloxacin = AUC_CIP)
+
+test_LLs <- rbind(Cotrimoxazole = LL_SXT,
+                  Nitrofurantoin = LL_NIT,
+                  Levofloxacin = LL_LVX,
+                  Ciprofloxacin = LL_CIP)
+
+test_perf <- cbind( AUC = test_AUCs,
+                    LogLoss = test_LLs)
+
+colnames(test_perf) = c("AUC", "Log loss")
+
+view(test_perf)
+
+cat(paste("\n","\n","\n","\n","\n","\n","\n","\n","\n","\n","\n","\n",
+          "\n","\n","\n","\n","\n","\n","\n","\n","\n","\n","\n","\n",
+          "\n","\n","\n","\n","\n","\n","\n","\n","\n","\n","\n","\n",
+          "\n","\n","\n","\n","\n","\n","\n","\n","\n","\n","\n","\n",
+          "\n","\n","\n", "Modelling provided by ADAPT_AST v1.0",
+          "\n","\n","\n","\n","\n","\n",
+          "Posterior sampling completed (4 chains, 1,0000 iterations)",
+          "\n","\n","\n","\n","\n","\n",
+          "NEXT MODEL UPDATE DUE:", 
+          Sys.Date()+30, "\n","\n",
+          "\n","\n","\n","\n","\n","\n","\n",
+          "\n","\n","\n","\n","\n","\n","\n","\n","\n","\n","\n","\n"))
 
 
